@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+src-tauri/target/
+
+# Tauri generated icons (regenerate with `cargo tauri icon icons/icon.svg`)
+src-tauri/icons/*.png
+src-tauri/icons/*.ico
+src-tauri/icons/*.icns
+src-tauri/icons/android/
+src-tauri/icons/ios/
+src-tauri/icons/AppIcon*.png
+src-tauri/icons/StoreLogo.png
+src-tauri/icons/Square*.png
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+*~
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# SQLite databases (generated at runtime)
+*.db
+*.db-shm
+*.db-wal
+
+# Secrets (never commit)
+*.enc
+*.enc.bak
+secrets/
+
+# Logs
+*.log

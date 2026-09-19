@@ -1,0 +1,25 @@
+[package]
+name = "sable-core"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+sable-providers.workspace = true
+sable-mcp.workspace = true
+sable-tools.workspace = true
+sable-skills.workspace = true
+sable-memory.workspace = true
+sable-persona.workspace = true
+
+tokio.workspace = true
+async-trait.workspace = true
+futures.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+tracing.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+tiktoken-rs.workspace = true
