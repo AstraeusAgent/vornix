@@ -8,6 +8,8 @@ use tokio::sync::Mutex;
 use tracing::info;
 
 mod commands;
+pub mod agent;
+pub mod servers;
 mod state;
 
 use state::AppState;
@@ -55,8 +57,9 @@ pub fn run() {
                 let memory_store = MemoryStore::new(pool.clone());
                 memory_store.run_migrations().await.expect("memory migrations failed");
 
-                // Initialize MCP manager
-                let mcp_manager = McpManager::new();
+                // Initialize MCP manager and connect the bundled servers
+                let mut mcp_manager = McpManager::new();
+                servers::connect_bundled_servers(&mut mcp_manager).await;
 
                 // Initialize persona
                 let persona = PersonaPolicy::default_sable();
@@ -83,8 +86,11 @@ pub fn run() {
             commands::session_delete,
             commands::session_get_messages,
             commands::provider_list_models,
+            commands::list_models,
             commands::provider_set_key,
             commands::provider_get_key,
+            commands::provider_key_status,
+            commands::provider_delete_key,
             commands::persona_set_intensity,
             commands::persona_get_intensity,
             commands::persona_get_system_prompt,

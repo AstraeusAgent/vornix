@@ -4,9 +4,9 @@ import { invoke } from "@tauri-apps/api/core";
 export interface Session {
   id: string;
   title: string | null;
-  modelId: string | null;
-  createdAt: string;
-  updatedAt: string;
+  model_id: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Message {
@@ -16,12 +16,27 @@ export interface Message {
   timestamp: string;
 }
 
+export interface ModelSummary {
+  id: string;
+  name: string;
+  provider_id: string;
+  context_length: number;
+  prompt_price: number | null;
+  completion_price: number | null;
+  supports_reasoning: boolean;
+  supports_tools: boolean;
+}
+
 interface ChatState {
   sessions: Session[];
   activeSessionId: string | null;
   messages: Record<string, Message[]>;
   isLoading: boolean;
   error: string | null;
+  models: ModelSummary[];
+  modelsProvider: string | null;
+  modelsLoading: boolean;
+  selectedModel: string | null;
 
   fetchSessions: () => Promise<void>;
   createSession: (title?: string) => Promise<string>;
@@ -30,6 +45,8 @@ interface ChatState {
   fetchMessages: (sessionId: string) => Promise<void>;
   sendMessage: (sessionId: string, content: string) => Promise<void>;
   clearError: () => void;
+  fetchModels: (providerId: string) => Promise<void>;
+  setSelectedModel: (modelId: string) => void;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -38,6 +55,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
   messages: {},
   isLoading: false,
   error: null,
+  models: [],
+  modelsProvider: null,
+  modelsLoading: false,
+  selectedModel: (() => {
+    try {
+      return localStorage.getItem("sable.lastModel");
+    } catch {
+      return null;
+    }
+  })(),
 
   fetchSessions: async () => {
     try {
@@ -71,7 +98,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   selectSession: async (id: string) => {
-    set({ activeSessionId: id });
+    set({ activeSessionId: id, error: null });
     await get().fetchMessages(id);
   },
 
@@ -124,7 +151,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
     try {
       const resp = await invoke<{ content: string; reasoning: string | null; tokens_used: number }>(
         "chat_send_message",
-        { sessionId, message: content }
+        {
+          sessionId,
+          message: content,
+          model: get().selectedModel,
+        }
       );
 
       const assistantMsg: Message = {
@@ -147,4 +178,26 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   clearError: () => set({ error: null }),
+
+  fetchModels: async (providerId: string) => {
+    if (get().modelsProvider === providerId && get().models.length > 0) return;
+    set({ modelsLoading: true });
+    try {
+      const models = await invoke<ModelSummary[]>("list_models", {
+        providerId,
+      });
+      set({ models, modelsProvider: providerId, modelsLoading: false });
+    } catch (e: any) {
+      set({ error: e.toString(), modelsLoading: false });
+    }
+  },
+
+  setSelectedModel: (modelId: string) => {
+    set({ selectedModel: modelId });
+    try {
+      localStorage.setItem("sable.lastModel", modelId);
+    } catch {
+      // storage unavailable — session-only persistence
+    }
+  },
 }));

@@ -4,8 +4,45 @@
 
 const fs = require("fs");
 const path = require("path");
-const { globSync } = require("glob");
 const readline = require("readline");
+
+// Minimal glob matcher — no external deps. Supports **, *, ?, and {a,b}.
+function globToRegex(pattern) {
+  let re = "";
+  for (let i = 0; i < pattern.length; i++) {
+    const c = pattern[i];
+    if (c === "*") {
+      if (pattern[i + 1] === "*") {
+        // `**/` or trailing `**`
+        if (pattern[i + 2] === "/") { re += "(?:.*/)?"; i += 2; }
+        else { re += ".*"; i++; }
+      } else {
+        re += "[^/]*";
+      }
+    } else if (c === "?") {
+      re += "[^/]";
+    } else {
+      re += c.replace(/[.+^$()|[\]{}\\]/g, "\\$&");
+    }
+  }
+  return new RegExp("^" + re + "$");
+}
+
+function walkFiles(dir, base, out) {
+  let entries;
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const e of entries) {
+    if (e.name === ".git" || e.name === "node_modules") continue;
+    const full = path.join(dir, e.name);
+    const rel = base ? base + "/" + e.name : e.name;
+    if (e.isDirectory()) walkFiles(full, rel, out);
+    else out.push(rel);
+  }
+}
 
 const WORKSPACE = process.env.SABLE_WORKSPACE || process.cwd();
 
@@ -134,7 +171,10 @@ function listDir(args) {
 
 function globSearch(args) {
   const cwd = args.cwd ? resolvePath(args.cwd) : WORKSPACE;
-  const matches = globSync(args.pattern, { cwd, nodir: true, ignore: ["**/node_modules/**", "**/.git/**"] });
+  const files = [];
+  walkFiles(cwd, "", files);
+  const re = globToRegex(args.pattern);
+  const matches = files.filter((f) => re.test(f) || re.test(path.basename(f)));
   return { matches };
 }
 

@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { useChatStore } from "./store";
+import { useChatStore, type Message } from "./store";
+import { ModelPicker } from "../../components/ModelPicker";
 
 export function ChatView({ sessionId }: { sessionId: string }) {
-  const messages = useChatStore((s) => s.messages[sessionId] || []);
+  const EMPTY: Message[] = [];
+  const messages = useChatStore((s) => s.messages[sessionId]) ?? EMPTY;
   const isLoading = useChatStore((s) => s.isLoading);
   const error = useChatStore((s) => s.error);
   const sendMessage = useChatStore((s) => s.sendMessage);
+  const clearError = useChatStore((s) => s.clearError);
+  const selectedModel = useChatStore((s) => s.selectedModel);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -42,8 +46,15 @@ export function ChatView({ sessionId }: { sessionId: string }) {
             </div>
           )}
           {error && (
-            <div className="px-4 py-3 rounded-lg bg-sable-error/10 border border-sable-error/20 text-sable-error text-sm">
-              {error}
+            <div className="px-4 py-3 rounded-lg bg-sable-error/10 border border-sable-error/20 text-sable-error text-sm flex items-start justify-between gap-3">
+              <span className="whitespace-pre-wrap">{error}</span>
+              <button
+                onClick={clearError}
+                className="shrink-0 text-sable-error/60 hover:text-sable-error"
+                aria-label="Dismiss error"
+              >
+                ✕
+              </button>
             </div>
           )}
           <div ref={messagesEndRef} />
@@ -53,6 +64,12 @@ export function ChatView({ sessionId }: { sessionId: string }) {
       {/* Composer */}
       <div className="border-t border-sable-border p-4">
         <div className="max-w-3xl mx-auto">
+          <div className="flex items-center gap-2 mb-2">
+            <ModelPicker />
+            <span className="text-[10px] text-sable-text-muted">
+              {selectedModel ?? "no model selected"}
+            </span>
+          </div>
           <div className="relative">
             <textarea
               value={input}

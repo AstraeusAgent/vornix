@@ -1,14 +1,18 @@
+import { useState } from "react";
 import { useChatStore } from "../features/chat/store";
 import { Titlebar } from "../components/Titlebar";
 import { Sidebar } from "../components/Sidebar";
+import { SettingsModal } from "../components/SettingsModal";
 import { ChatView } from "../features/chat/ChatView";
 
 export default function App() {
   const activeSessionId = useChatStore((s) => s.activeSessionId);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
     <div className="flex flex-col h-screen w-screen bg-sable-bg">
-      <Titlebar />
+      <Titlebar onOpenSettings={() => setSettingsOpen(true)} />
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
         <main className="flex-1 flex flex-col overflow-hidden">
@@ -41,6 +45,9 @@ function EmptyState() {
         >
           New Session
         </button>
+        <p className="text-xs text-sable-text-muted mt-6">
+          Set your OpenRouter API key in Settings before chatting.
+        </p>
       </div>
     </div>
   );

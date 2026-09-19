@@ -218,6 +218,8 @@ impl PermissionPolicy {
         match tool_call.tool_name.as_str() {
             // -- Always Tier 0 (read-only) --
             name if name.starts_with("filesystem.read") => Tier0ReadOnly,
+            name if name.starts_with("filesystem.list") => Tier0ReadOnly,
+            name if name.starts_with("filesystem.file") => Tier0ReadOnly,
             name if name.starts_with("filesystem.glob") => Tier0ReadOnly,
             name if name.starts_with("filesystem.grep") => Tier0ReadOnly,
             name if name.starts_with("diagnostics.") => Tier0ReadOnly,

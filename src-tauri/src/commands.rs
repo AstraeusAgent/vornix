@@ -164,20 +164,158 @@ pub async fn provider_list_models(
     }
 }
 
+#[derive(Serialize, Clone)]
+pub struct ModelSummary {
+    pub id: String,
+    pub name: String,
+    pub provider_id: String,
+    pub context_length: u64,
+    pub prompt_price: Option<f64>,
+    pub completion_price: Option<f64>,
+    pub supports_reasoning: bool,
+    pub supports_tools: bool,
+}
+
+/// Parsed model list for the picker UI, merged across providers.
+#[tauri::command]
+pub async fn list_models(provider_id: String) -> Result<Vec<ModelSummary>, String> {
+    let client = reqwest::Client::new();
+
+    let fetch = |url: &str| {
+        let client = client.clone();
+        let url = url.to_string();
+        async move { client.get(&url).send().await?.text().await }
+    };
+
+    let body = match provider_id.as_str() {
+        "openrouter" => fetch("https://openrouter.ai/api/v1/models")
+            .await
+            .map_err(|e| e.to_string())?,
+        "opencode-go" => fetch("https://opencode.ai/zen/go/v1/models")
+            .await
+            .map_err(|e| e.to_string())?,
+        _ => return Err(format!("unknown provider: {}", provider_id)),
+    };
+
+    let json: serde_json::Value = serde_json::from_str(&body)
+        .map_err(|e| format!("failed to parse models response: {}", e))?;
+
+    let entries = json
+        .get("data")
+        .and_then(|d| d.as_array())
+        .cloned()
+        .unwrap_or_default();
+
+    let mut models = Vec::new();
+    for entry in entries {
+        let id = match entry.get("id").and_then(|v| v.as_str()) {
+            Some(id) => id.to_string(),
+            None => continue,
+        };
+        let name = entry
+            .get("name")
+            .and_then(|v| v.as_str())
+            .unwrap_or(&id)
+            .to_string();
+        let context_length = entry
+            .get("context_length")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0);
+
+        // OpenRouter pricing is per-token strings; compute per-million
+        let pricing = entry.get("pricing");
+        let per_million = |key: &str| -> Option<f64> {
+            let raw = pricing?.get(key)?.as_str()?;
+            let v: f64 = raw.parse().ok()?;
+            Some(v * 1_000_000.0)
+        };
+        let prompt_price = per_million("prompt");
+        let completion_price = per_million("completion");
+
+        let supported = entry
+            .get("supported_parameters")
+            .and_then(|v| v.as_array())
+            .cloned()
+            .unwrap_or_default();
+        let supports_reasoning = supported
+            .iter()
+            .any(|p| p.as_str() == Some("reasoning") || p.as_str() == Some("reasoning_effort"));
+        let supports_tools = supported.iter().any(|p| p.as_str() == Some("tools"));
+
+        models.push(ModelSummary {
+            id,
+            name,
+            provider_id: provider_id.clone(),
+            context_length,
+            prompt_price,
+            completion_price,
+            supports_reasoning,
+            supports_tools,
+        });
+    }
+
+    models.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+    Ok(models)
+}
+
+fn key_name_for(provider_id: &str) -> Result<&'static str, String> {
+    match provider_id {
+        "openrouter" => Ok("openrouter_api_key"),
+        "opencode-go" => Ok("opencode_go_api_key"),
+        "github" => Ok("github_token"),
+        _ => Err(format!("unknown provider: {}", provider_id)),
+    }
+}
+
 #[tauri::command]
 pub async fn provider_set_key(
     state: State<'_, AppState>,
     provider_id: String,
     api_key: String,
 ) -> Result<(), String> {
-    let key_name = match provider_id.as_str() {
-        "openrouter" => "openrouter_api_key",
-        "opencode-go" => "opencode_go_api_key",
-        "github" => "github_token",
-        _ => return Err(format!("unknown provider: {}", provider_id)),
-    };
-    let mut vault = state.vault.lock().await;
+    let key_name = key_name_for(&provider_id)?;
+    let vault = state.vault.lock().await;
     vault.set(key_name, &api_key).await.map_err(|e| e.to_string())
+}
+
+#[derive(Serialize)]
+pub struct KeyStatus {
+    pub provider_id: String,
+    /// Masked hint of the stored key, e.g. "••••••••ab12", or null if unset.
+    pub masked: Option<String>,
+    pub backend: String,
+}
+
+/// Reports whether a key is permanently stored, without exposing it.
+#[tauri::command]
+pub async fn provider_key_status(
+    state: State<'_, AppState>,
+    provider_id: String,
+) -> Result<KeyStatus, String> {
+    let key_name = key_name_for(&provider_id)?;
+    let vault = state.vault.lock().await;
+    let stored = vault.get(key_name).await.map_err(|e| e.to_string())?;
+    let masked = stored.map(|k| {
+        let chars: Vec<char> = k.chars().collect();
+        let take = chars.len().min(4);
+        let suffix: String = chars[chars.len() - take..].iter().collect();
+        format!("••••••••{}", suffix)
+    });
+    Ok(KeyStatus {
+        provider_id,
+        masked,
+        backend: format!("{:?}", state.vault_status),
+    })
+}
+
+#[tauri::command]
+pub async fn provider_delete_key(
+    state: State<'_, AppState>,
+    provider_id: String,
+) -> Result<(), String> {
+    let key_name = key_name_for(&provider_id)?;
+    let vault = state.vault.lock().await;
+    vault.delete(key_name).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -185,12 +323,7 @@ pub async fn provider_get_key(
     state: State<'_, AppState>,
     provider_id: String,
 ) -> Result<Option<String>, String> {
-    let key_name = match provider_id.as_str() {
-        "openrouter" => "openrouter_api_key",
-        "opencode-go" => "opencode_go_api_key",
-        "github" => "github_token",
-        _ => return Err(format!("unknown provider: {}", provider_id)),
-    };
+    let key_name = key_name_for(&provider_id)?;
     let vault = state.vault.lock().await;
     vault.get(key_name).await.map_err(|e| e.to_string())
 }
@@ -246,122 +379,24 @@ pub async fn chat_send_message(
     state: State<'_, AppState>,
     session_id: String,
     message: String,
+    model: Option<String>,
 ) -> Result<ChatResponse, String> {
     let uuid = uuid::Uuid::parse_str(&session_id).map_err(|e| e.to_string())?;
+    let model_id = model.unwrap_or_else(|| "anthropic/claude-sonnet-4".to_string());
 
-    // Store user message
-    state
-        .sessions
-        .append_message(uuid, "user", &message, None, None, None, None, None)
-        .await
-        .map_err(|e| e.to_string())?;
+    let deps = crate::agent::AgentDeps {
+        vault: state.vault.clone(),
+        persona: state.persona.clone(),
+        mcp: state.mcp.clone(),
+    };
 
-    // Get API key for OpenRouter
-    let vault = state.vault.lock().await;
-    let api_key = vault
-        .get("openrouter_api_key")
-        .await
-        .map_err(|e| e.to_string())?
-        .ok_or("No API key configured. Add an OpenRouter key in Settings.")?;
-    drop(vault);
-
-    // Get conversation history
-    let messages = state
-        .sessions
-        .get_all_messages(uuid)
-        .await
-        .map_err(|e| e.to_string())?;
-
-    // Get persona system prompt
-    let persona = state.persona.lock().await;
-    let system_prompt = persona.generate_system_prompt();
-    drop(persona);
-
-    // Get available tools from MCP
-    let mcp = state.mcp.lock().await;
-    let tools_json: Vec<serde_json::Value> = mcp
-        .get_tools_with_schemas()
-        .iter()
-        .map(|t| {
-            serde_json::json!({
-                "type": "function",
-                "function": {
-                    "name": t.name,
-                    "description": t.description,
-                    "parameters": t.parameters,
-                }
-            })
-        })
-        .collect();
-    drop(mcp);
-
-    // Build request to OpenRouter
-    let mut api_messages: Vec<serde_json::Value> = vec![
-        serde_json::json!({"role": "system", "content": system_prompt}),
-    ];
-    for m in &messages {
-        api_messages.push(serde_json::json!({
-            "role": m.role,
-            "content": m.content,
-        }));
-    }
-
-    let mut body = serde_json::json!({
-        "model": "anthropic/claude-sonnet-4",
-        "messages": api_messages,
-        "stream": false,
-    });
-
-    if !tools_json.is_empty() {
-        body["tools"] = serde_json::json!(tools_json);
-    }
-
-    let client = reqwest::Client::new();
-    let resp = client
-        .post("https://openrouter.ai/api/v1/chat/completions")
-        .header("Authorization", format!("Bearer {}", api_key))
-        .header("Content-Type", "application/json")
-        .json(&body)
-        .send()
-        .await
-        .map_err(|e| e.to_string())?;
-
-    let resp_json: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
-
-    let content = resp_json
-        .get("choices")
-        .and_then(|c| c.get(0))
-        .and_then(|c| c.get("message"))
-        .and_then(|m| m.get("content"))
-        .and_then(|c| c.as_str())
-        .unwrap_or("")
-        .to_string();
-
-    let tokens_used = resp_json
-        .get("usage")
-        .and_then(|u| u.get("total_tokens"))
-        .and_then(|t| t.as_u64())
-        .unwrap_or(0) as u32;
-
-    // Store assistant response
-    state
-        .sessions
-        .append_message(
-            uuid,
-            "assistant",
-            &content,
-            None,
-            None,
-            None,
-            Some(tokens_used as i64),
-            Some("anthropic/claude-sonnet-4"),
-        )
+    let result = crate::agent::run_agent_turn(&deps, &state.sessions, uuid, &message, &model_id)
         .await
         .map_err(|e| e.to_string())?;
 
     Ok(ChatResponse {
-        content,
+        content: result.content,
         reasoning: None,
-        tokens_used,
+        tokens_used: result.total_tokens as u32,
     })
 }
