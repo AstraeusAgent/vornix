@@ -1,6 +1,6 @@
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
-use sable_persona::intensity::PersonaIntensity;
+use vornix_persona::intensity::PersonaIntensity;
 use tauri::State;
 
 #[derive(Serialize)]

@@ -1,25 +1,25 @@
 @import "tailwindcss";
 
 @theme {
-  --color-sable-bg: #0d0f12;
-  --color-sable-surface: #15181e;
-  --color-sable-surface-hover: #1a1e26;
-  --color-sable-border: #252a33;
-  --color-sable-text: #e2e4ea;
-  --color-sable-text-muted: #7c8294;
-  --color-sable-accent: #6366f1;
-  --color-sable-accent-hover: #818cf8;
-  --color-sable-success: #22c55e;
-  --color-sable-error: #ef4444;
-  --color-sable-warning: #f59e0b;
+  --color-vornix-bg: #0d0f12;
+  --color-vornix-surface: #15181e;
+  --color-vornix-surface-hover: #1a1e26;
+  --color-vornix-border: #252a33;
+  --color-vornix-text: #e2e4ea;
+  --color-vornix-text-muted: #7c8294;
+  --color-vornix-accent: #6366f1;
+  --color-vornix-accent-hover: #818cf8;
+  --color-vornix-success: #22c55e;
+  --color-vornix-error: #ef4444;
+  --color-vornix-warning: #f59e0b;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 }
 
 body {
   margin: 0;
-  background: var(--color-sable-bg);
-  color: var(--color-sable-text);
+  background: var(--color-vornix-bg);
+  color: var(--color-vornix-text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -40,10 +40,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-sable-border);
+  background: var(--color-vornix-border);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-sable-text-muted);
+  background: var(--color-vornix-text-muted);
 }

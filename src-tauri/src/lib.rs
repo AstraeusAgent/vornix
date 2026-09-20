@@ -1,7 +1,7 @@
-use sable_memory::{SessionStore, MemoryStore};
-use sable_mcp::manager::McpManager;
-use sable_persona::policy::PersonaPolicy;
-use sable_secrets::{SecretsVault, VaultStatus};
+use vornix_memory::{SessionStore, MemoryStore};
+use vornix_mcp::manager::McpManager;
+use vornix_persona::policy::PersonaPolicy;
+use vornix_secrets::{SecretsVault, VaultStatus};
 use std::sync::Arc;
 use tauri::Manager;
 use tokio::sync::Mutex;
@@ -23,7 +23,7 @@ pub fn run() {
         )
         .init();
 
-    info!("Sable starting up");
+    info!("Vornix starting up");
 
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
@@ -43,7 +43,7 @@ pub fn run() {
                     .path()
                     .app_data_dir()
                     .expect("no app data dir")
-                    .join("sable.db");
+                    .join("vornix.db");
                 std::fs::create_dir_all(db_path.parent().unwrap()).ok();
 
                 let pool = sqlx::sqlite::SqlitePoolOptions::new()
@@ -62,7 +62,7 @@ pub fn run() {
                 servers::connect_bundled_servers(&mut mcp_manager).await;
 
                 // Initialize persona
-                let persona = PersonaPolicy::default_sable();
+                let persona = PersonaPolicy::default_vornix();
 
                 // Store global state
                 let app_state = AppState {

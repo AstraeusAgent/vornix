@@ -1,30 +1,30 @@
-# Sable — Architecture
+# Vornix — Architecture
 
-Sable is a desktop AI coding harness built with Tauri v2 (Rust core) and React/TypeScript (frontend).
+Vornix is a desktop AI coding harness built with Tauri v2 (Rust core) and React/TypeScript (frontend).
 
 ## Directory Structure
 
 ```
-sable/
+vornix/
 ├── src-tauri/                    # Rust workspace
-│   ├── Cargo.toml                # Workspace root + sable-app binary crate
+│   ├── Cargo.toml                # Workspace root + vornix binary crate
 │   ├── tauri.conf.json            # Tauri configuration
 │   ├── capabilities/              # IPC permission scopes
-│   ├── src/                       # sable-app binary source
+│   ├── src/                       # vornix binary source
 │   │   ├── main.rs
 │   │   ├── lib.rs                 # Tauri setup, vault/memory/persona init
 │   │   ├── commands.rs            # Tauri IPC commands
 │   │   └── state.rs               # AppState (vault, sessions, memory, mcp, persona)
 │   └── crates/                    # Library crates
-│       ├── sable-core/            # Agent loop: state machine, orchestrator, context builder
-│       ├── sable-providers/       # Provider trait, OpenRouter + OpenCode Go clients
-│       ├── sable-mcp/             # MCP client manager, JSON-RPC over stdio
-│       ├── sable-tools/           # Tool schemas, permission gate, registry, undo
-│       ├── sable-skills/          # SKILL.md loader, index, progressive disclosure
-│       ├── sable-memory/          # Session store, long-term memory, compaction
-│       ├── sable-git/             # git2-rs engine, GitHub device flow
-│       ├── sable-secrets/         # OS keychain + age-encrypted fallback
-│       └── sable-persona/         # Persona policy engine (Off/Subtle/Full)
+│       ├── vornix-core/            # Agent loop: state machine, orchestrator, context builder
+│       ├── vornix-providers/       # Provider trait, OpenRouter + OpenCode Go clients
+│       ├── vornix-mcp/             # MCP client manager, JSON-RPC over stdio
+│       ├── vornix-tools/           # Tool schemas, permission gate, registry, undo
+│       ├── vornix-skills/          # SKILL.md loader, index, progressive disclosure
+│       ├── vornix-memory/          # Session store, long-term memory, compaction
+│       ├── vornix-git/             # git2-rs engine, GitHub device flow
+│       ├── vornix-secrets/         # OS keychain + age-encrypted fallback
+│       └── vornix-persona/         # Persona policy engine (Off/Subtle/Full)
 ├── src/                          # Frontend (React 19 + TypeScript)
 │   ├── main.tsx
 │   ├── app/App.tsx
@@ -36,9 +36,9 @@ sable/
 │   │   └── Sidebar.tsx             # Session list
 │   └── styles/global.css          # Tailwind v4, design tokens
 ├── mcp-servers/                  # Bundled MCP servers (Node.js, JSON-RPC 2.0)
-│   ├── sable-fs/                  # Filesystem: read, write, list, glob, info
-│   ├── sable-shell/               # Shell: execute, start/list/kill processes
-│   └── sable-thinking/            # Sequential thinking scratchpad
+│   ├── vornix-fs/                  # Filesystem: read, write, list, glob, info
+│   ├── vornix-shell/               # Shell: execute, start/list/kill processes
+│   └── vornix-thinking/            # Sequential thinking scratchpad
 └── docs/
     ├── ARCHITECTURE.md
     └── STATUS.md                  # Living status ledger
@@ -46,7 +46,7 @@ sable/
 
 ## Key Design Decisions
 
-1. **Trait-injected provider system** — `ChatProvider` and `ToolExecutor` are traits in `sable-core`. The orchestrator is decoupled from specific LLM backends.
+1. **Trait-injected provider system** — `ChatProvider` and `ToolExecutor` are traits in `vornix-core`. The orchestrator is decoupled from specific LLM backends.
 
 2. **MCP-all-the-way-down** — every tool (including bundled filesystem/shell) speaks JSON-RPC 2.0 over stdio. Adding a new capability = connecting a new MCP server.
 

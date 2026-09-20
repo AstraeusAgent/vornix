@@ -1,5 +1,5 @@
-use sable_mcp::manager::McpManager;
-use sable_mcp::transport::{McpServerConfig, TransportConfig};
+use vornix_mcp::manager::McpManager;
+use vornix_mcp::transport::{McpServerConfig, TransportConfig};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use tracing::{info, warn};
@@ -11,7 +11,7 @@ pub async fn connect_bundled_servers(mcp: &mut McpManager) {
     let workspace = crate::agent::workspace_root();
     std::fs::create_dir_all(&workspace).ok();
 
-    for name in ["sable-fs", "sable-shell", "sable-thinking"] {
+    for name in ["vornix-fs", "vornix-shell", "vornix-thinking"] {
         let script = servers_root.join(name).join("index.cjs");
         if !script.exists() {
             warn!("bundled MCP server script missing: {}", script.display());
@@ -19,7 +19,7 @@ pub async fn connect_bundled_servers(mcp: &mut McpManager) {
         }
 
         let mut env = HashMap::new();
-        env.insert("SABLE_WORKSPACE".to_string(), workspace.display().to_string());
+        env.insert("VORNIX_WORKSPACE".to_string(), workspace.display().to_string());
 
         let config = McpServerConfig {
             name: name.to_string(),
@@ -45,9 +45,9 @@ pub async fn connect_bundled_servers(mcp: &mut McpManager) {
 }
 
 /// Directory containing mcp-servers/<name>/index.js.
-/// In dev builds this is the repo root; overridden with SABLE_SERVERS_DIR.
+/// In dev builds this is the repo root; overridden with VORNIX_SERVERS_DIR.
 pub fn bundled_servers_dir() -> PathBuf {
-    std::env::var("SABLE_SERVERS_DIR").map(PathBuf::from).unwrap_or_else(|_| {
+    std::env::var("VORNIX_SERVERS_DIR").map(PathBuf::from).unwrap_or_else(|_| {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .map(|p| p.join("mcp-servers"))

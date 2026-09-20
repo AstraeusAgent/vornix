@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface SettingsModalProps {
   open: boolean;
@@ -38,8 +39,6 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
   useEffect(() => {
     if (open) loadStatus();
   }, [open]);
-
-  if (!open) return null;
 
   const save = async () => {
     if (!apiKey.trim()) return;
@@ -90,19 +89,29 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-      onClick={onClose}
-    >
-      <div
-        className="w-[480px] bg-sable-surface border border-sable-border rounded-xl shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-sable-border">
-          <h2 className="text-sm font-semibold text-sable-text">Settings</h2>
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 8 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="w-[480px] bg-vornix-surface border border-vornix-border rounded-xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-vornix-border">
+          <h2 className="text-sm font-semibold text-vornix-text">Settings</h2>
           <button
             onClick={onClose}
-            className="text-sable-text-muted hover:text-sable-text text-sm"
+            className="text-vornix-text-muted hover:text-vornix-text text-sm"
             aria-label="Close settings"
           >
             ✕
@@ -111,7 +120,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
 
         <div className="px-5 py-4 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-sable-text-muted mb-2">
+            <label className="block text-xs font-medium text-vornix-text-muted mb-2">
               Provider
             </label>
             <div className="flex gap-2">
@@ -126,8 +135,8 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
                   onClick={() => setProvider(id)}
                   className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                     provider === id
-                      ? "bg-sable-accent text-white"
-                      : "bg-sable-bg text-sable-text-muted border border-sable-border hover:text-sable-text"
+                      ? "bg-vornix-accent text-white"
+                      : "bg-vornix-bg text-vornix-text-muted border border-vornix-border hover:text-vornix-text"
                   }`}
                 >
                   {label}
@@ -137,18 +146,18 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-sable-text-muted mb-2">
+            <label className="block text-xs font-medium text-vornix-text-muted mb-2">
               API key
             </label>
 
             {keyStatus[provider]?.masked && (
-              <div className="flex items-center justify-between gap-2 mb-2 px-3 py-2 rounded-md bg-sable-success/10 border border-sable-success/20">
-                <span className="text-xs text-sable-success font-mono">
+              <div className="flex items-center justify-between gap-2 mb-2 px-3 py-2 rounded-md bg-vornix-success/10 border border-vornix-success/20">
+                <span className="text-xs text-vornix-success font-mono">
                   Saved: {keyStatus[provider].masked}
                 </span>
                 <button
                   onClick={removeKey}
-                  className="text-[10px] text-sable-error/70 hover:text-sable-error font-medium"
+                  className="text-[10px] text-vornix-error/70 hover:text-vornix-error font-medium"
                 >
                   Remove
                 </button>
@@ -160,9 +169,9 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder={provider === "openrouter" ? "sk-or-v1-..." : "API key"}
-              className="w-full bg-sable-bg border border-sable-border rounded-lg px-3 py-2 text-sm text-sable-text placeholder:text-sable-text-muted focus:outline-none focus:ring-1 focus:ring-sable-accent"
+              className="w-full bg-vornix-bg border border-vornix-border rounded-lg px-3 py-2 text-sm text-vornix-text placeholder:text-vornix-text-muted focus:outline-none focus:ring-1 focus:ring-vornix-accent"
             />
-            <p className="text-xs text-sable-text-muted mt-1.5">
+            <p className="text-xs text-vornix-text-muted mt-1.5">
               Stored in your OS keychain, never in plaintext on disk.
             </p>
           </div>
@@ -171,14 +180,14 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
             <button
               onClick={save}
               disabled={!apiKey.trim() || saving}
-              className="px-4 py-1.5 bg-sable-accent hover:bg-sable-accent-hover disabled:opacity-40 text-white rounded-md text-xs font-medium transition-colors"
+              className="px-4 py-1.5 bg-vornix-accent hover:bg-vornix-accent-hover disabled:opacity-40 text-white rounded-md text-xs font-medium transition-colors"
             >
               {saving ? "Saving..." : "Save key"}
             </button>
             <button
               onClick={testConnection}
               disabled={testing}
-              className="px-4 py-1.5 bg-sable-bg border border-sable-border hover:border-sable-text-muted disabled:opacity-40 text-sable-text rounded-md text-xs font-medium transition-colors"
+              className="px-4 py-1.5 bg-vornix-bg border border-vornix-border hover:border-vornix-text-muted disabled:opacity-40 text-vornix-text rounded-md text-xs font-medium transition-colors"
             >
               {testing ? "Testing..." : "Test connection"}
             </button>
@@ -188,15 +197,17 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
             <div
               className={`px-3 py-2 rounded-md text-xs ${
                 status.kind === "ok"
-                  ? "bg-sable-success/10 text-sable-success border border-sable-success/20"
-                  : "bg-sable-error/10 text-sable-error border border-sable-error/20"
+                  ? "bg-vornix-success/10 text-vornix-success border border-vornix-success/20"
+                  : "bg-vornix-error/10 text-vornix-error border border-vornix-error/20"
               }`}
             >
               {status.msg}
             </div>
           )}
         </div>
-      </div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

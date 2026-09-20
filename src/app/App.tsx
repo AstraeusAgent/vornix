@@ -10,7 +10,7 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-sable-bg">
+    <div className="flex flex-col h-screen w-screen bg-vornix-bg">
       <Titlebar onOpenSettings={() => setSettingsOpen(true)} />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <div className="flex flex-1 overflow-hidden">
@@ -33,19 +33,19 @@ function EmptyState() {
   return (
     <div className="flex-1 flex items-center justify-center">
       <div className="text-center max-w-md">
-        <div className="text-5xl mb-4 font-bold text-sable-accent tracking-tight">
-          Sable
+        <div className="text-5xl mb-4 font-bold text-vornix-accent tracking-tight">
+          Vornix
         </div>
-        <p className="text-sable-text-muted mb-8 text-sm leading-relaxed">
+        <p className="text-vornix-text-muted mb-8 text-sm leading-relaxed">
           A debugging-first coding agent with a voice. Not a compliance bot — a sharp, slightly paranoid partner.
         </p>
         <button
           onClick={() => createSession()}
-          className="px-6 py-3 bg-sable-accent hover:bg-sable-accent-hover text-white rounded-lg text-sm font-medium transition-colors"
+          className="px-6 py-3 bg-vornix-accent hover:bg-vornix-accent-hover text-white rounded-lg text-sm font-medium transition-colors"
         >
           New Session
         </button>
-        <p className="text-xs text-sable-text-muted mt-6">
+        <p className="text-xs text-vornix-text-muted mt-6">
           Set your OpenRouter API key in Settings before chatting.
         </p>
       </div>

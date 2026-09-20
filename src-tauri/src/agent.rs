@@ -4,11 +4,11 @@
 //! test, so the UI and tests exercise the exact same code path.
 
 use anyhow::{Context, Result};
-use sable_memory::SessionStore;
-use sable_mcp::manager::McpManager;
-use sable_persona::policy::PersonaPolicy;
-use sable_secrets::SecretsVault;
-use sable_tools::{PermissionDecision, PermissionPolicy, PermissionTier, ToolCall};
+use vornix_memory::SessionStore;
+use vornix_mcp::manager::McpManager;
+use vornix_persona::policy::PersonaPolicy;
+use vornix_secrets::SecretsVault;
+use vornix_tools::{PermissionDecision, PermissionPolicy, PermissionTier, ToolCall};
 use std::collections::HashSet;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -26,7 +26,7 @@ pub struct AgentTurnResult {
     pub total_tokens: u64,
 }
 
-/// Map an MCP tool name (`sable-fs.read_file`) to the permission
+/// Map an MCP tool name (`vornix-fs.read_file`) to the permission
 /// classifier's vocabulary (`filesystem.read_file`).
 fn permission_key(mcp_name: &str) -> String {
     let (server, tool) = match mcp_name.split_once('.') {
@@ -34,23 +34,23 @@ fn permission_key(mcp_name: &str) -> String {
         None => return mcp_name.to_string(),
     };
     let category = match server {
-        "sable-fs" => "filesystem",
-        "sable-shell" => "shell",
-        "sable-thinking" => "thinking",
-        "sable-git" => "git",
+        "vornix-fs" => "filesystem",
+        "vornix-shell" => "shell",
+        "vornix-thinking" => "thinking",
+        "vornix-git" => "git",
         other => other,
     };
     format!("{}.{}", category, tool)
 }
 
 /// API-facing tool name: OpenRouter function names must match
-/// `^[a-zA-Z0-9_-]{1,64}$`, so `sable-fs.read_file` becomes `sable_fs__read_file`.
+/// `^[a-zA-Z0-9_-]{1,64}$`, so `vornix-fs.read_file` becomes `vornix_fs__read_file`.
 fn api_tool_name(mcp_name: &str) -> String {
     mcp_name.replace('.', "__").replace('-', "_")
 }
 
 fn mcp_tool_name(api_name: &str) -> String {
-    // `sable_fs__read_file` -> server "sable_fs" -> canonical "sable-fs.read_file"
+    // `vornix_fs__read_file` -> server "vornix_fs" -> canonical "vornix-fs.read_file"
     if let Some((server, tool)) = api_name.split_once("__") {
         let server = server.replace("_fs", "-fs").replace("_shell", "-shell")
             .replace("_thinking", "-thinking").replace("_git", "-git");
@@ -322,7 +322,7 @@ async fn execute_tool(
     let call = ToolCall::new(permission_key(mcp_name), args.clone());
     let tier = PermissionPolicy::classify(&call);
     let decision = PermissionPolicy::evaluate(
-        &sable_tools::PermissionRequest {
+        &vornix_tools::PermissionRequest {
             tool_call: call,
             tier,
             description: String::new(),
@@ -365,12 +365,12 @@ async fn execute_tool(
 }
 
 pub fn workspace_root() -> std::path::PathBuf {
-    std::env::var("SABLE_WORKSPACE")
+    std::env::var("VORNIX_WORKSPACE")
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|_| {
             dirs::home_dir()
                 .unwrap_or_else(|| std::path::PathBuf::from("."))
-                .join("SableWorkspace")
+                .join("VornixWorkspace")
         })
 }
 

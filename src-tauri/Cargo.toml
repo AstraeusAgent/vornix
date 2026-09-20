@@ -1,5 +1,5 @@
 [package]
-name = "sable-app"
+name = "vornix"
 version = "0.1.0"
 edition = "2024"
 license = "MIT"
@@ -7,15 +7,15 @@ license = "MIT"
 [workspace]
 resolver = "2"
 members = [
-    "crates/sable-core",
-    "crates/sable-providers",
-    "crates/sable-mcp",
-    "crates/sable-tools",
-    "crates/sable-skills",
-    "crates/sable-memory",
-    "crates/sable-git",
-    "crates/sable-secrets",
-    "crates/sable-persona",
+    "crates/vornix-core",
+    "crates/vornix-providers",
+    "crates/vornix-mcp",
+    "crates/vornix-tools",
+    "crates/vornix-skills",
+    "crates/vornix-memory",
+    "crates/vornix-git",
+    "crates/vornix-secrets",
+    "crates/vornix-persona",
     ".",
 ]
 
@@ -68,26 +68,26 @@ hex = "0.4"
 dirs = "6"
 toml = "0.8"
 
-sable-core = { path = "crates/sable-core" }
-sable-providers = { path = "crates/sable-providers" }
-sable-mcp = { path = "crates/sable-mcp" }
-sable-tools = { path = "crates/sable-tools" }
-sable-skills = { path = "crates/sable-skills" }
-sable-memory = { path = "crates/sable-memory" }
-sable-git = { path = "crates/sable-git" }
-sable-secrets = { path = "crates/sable-secrets" }
-sable-persona = { path = "crates/sable-persona" }
+vornix-core = { path = "crates/vornix-core" }
+vornix-providers = { path = "crates/vornix-providers" }
+vornix-mcp = { path = "crates/vornix-mcp" }
+vornix-tools = { path = "crates/vornix-tools" }
+vornix-skills = { path = "crates/vornix-skills" }
+vornix-memory = { path = "crates/vornix-memory" }
+vornix-git = { path = "crates/vornix-git" }
+vornix-secrets = { path = "crates/vornix-secrets" }
+vornix-persona = { path = "crates/vornix-persona" }
 
 [dependencies]
-sable-core.workspace = true
-sable-providers.workspace = true
-sable-mcp.workspace = true
-sable-tools.workspace = true
-sable-skills.workspace = true
-sable-memory.workspace = true
-sable-git.workspace = true
-sable-secrets.workspace = true
-sable-persona.workspace = true
+vornix-core.workspace = true
+vornix-providers.workspace = true
+vornix-mcp.workspace = true
+vornix-tools.workspace = true
+vornix-skills.workspace = true
+vornix-memory.workspace = true
+vornix-git.workspace = true
+vornix-secrets.workspace = true
+vornix-persona.workspace = true
 
 tauri.workspace = true
 tauri-plugin-shell.workspace = true
@@ -109,11 +109,11 @@ futures.workspace = true
 
 [dev-dependencies]
 tempfile = "3"
-sable-memory.workspace = true
-sable-mcp.workspace = true
-sable-secrets.workspace = true
-sable-persona.workspace = true
-sable-tools.workspace = true
+vornix-memory.workspace = true
+vornix-mcp.workspace = true
+vornix-secrets.workspace = true
+vornix-persona.workspace = true
+vornix-tools.workspace = true
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

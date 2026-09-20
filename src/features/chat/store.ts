@@ -60,7 +60,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   modelsLoading: false,
   selectedModel: (() => {
     try {
-      return localStorage.getItem("sable.lastModel");
+      return localStorage.getItem("vornix.lastModel");
     } catch {
       return null;
     }
@@ -195,7 +195,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   setSelectedModel: (modelId: string) => {
     set({ selectedModel: modelId });
     try {
-      localStorage.setItem("sable.lastModel", modelId);
+      localStorage.setItem("vornix.lastModel", modelId);
     } catch {
       // storage unavailable — session-only persistence
     }

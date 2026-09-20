@@ -1,4 +1,4 @@
-# Sable — STATUS.md
+# Vornix — STATUS.md
 
 > Living ledger of what's implemented and verified vs. designed-but-not-yet-built.
 
@@ -16,9 +16,9 @@
 
 | Component | Status | Notes |
 |---|---|---|
-| sable-fs MCP server | ✅ Built | Real JSON-RPC 2.0 over stdio, 5 tools |
-| sable-shell MCP server | ✅ Built | Real JSON-RPC 2.0 over stdio, 5 tools |
-| sable-thinking MCP server | ✅ Built | Real JSON-RPC 2.0 over stdio, 3 tools |
+| vornix-fs MCP server | ✅ Built | Real JSON-RPC 2.0 over stdio, 5 tools |
+| vornix-shell MCP server | ✅ Built | Real JSON-RPC 2.0 over stdio, 5 tools |
+| vornix-thinking MCP server | ✅ Built | Real JSON-RPC 2.0 over stdio, 3 tools |
 | Permission gate | ✅ Built + 12 tests | 3-tier system, shell allowlist/destructive patterns |
 | Tool registry | ✅ Built + 6 tests | Namespace-aware MCP discovery |
 | Undo history | ✅ Built + 6 tests | Per-file, per-tool-call snapshots |
@@ -37,7 +37,7 @@
 
 | Component | Status | Notes |
 |---|---|---|
-| Hypothesis tracking | ✅ Built (via sable-thinking) | Structured thought chain with revisions |
+| Hypothesis tracking | ✅ Built (via vornix-thinking) | Structured thought chain with revisions |
 | Reproduce-before-fix | ✅ Enforced by orchestrator | Observing state gate |
 | Loop detector integration | ✅ Wired | Suspicious/Stuck → strategy change injection |
 
@@ -95,9 +95,9 @@
 
 These are genuinely out of scope for the current milestone and will be implemented in subsequent work:
 
-- **Streaming chat responses** — current implementation is non-streaming (sable-app/src/commands.rs uses `stream: false`). SSE streaming and the `OrchestratorEvent` event bus are architecturally ready but not yet wired to the Tauri frontend event system.
-- **sable-lsp MCP server** — diagnostics bridge is designed but the server binary isn't implemented.
-- **sable-git MCP server** — git engine is built as a Rust crate; the standalone MCP server process wrapping it is not yet created.
+- **Streaming chat responses** — current implementation is non-streaming (vornix/src/commands.rs uses `stream: false`). SSE streaming and the `OrchestratorEvent` event bus are architecturally ready but not yet wired to the Tauri frontend event system.
+- **vornix-lsp MCP server** — diagnostics bridge is designed but the server binary isn't implemented.
+- **vornix-git MCP server** — git engine is built as a Rust crate; the standalone MCP server process wrapping it is not yet created.
 - **Formatter/linter auto-run** — the language toolchain registry and auto-verification after file writes.
 - **Two-pass verification** for risky fixes.
 - **Reasoning Tape UI** — the collapsible side-rail for reasoning/thinking blocks.
